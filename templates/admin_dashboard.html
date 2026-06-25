@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Admin Dashboard</h2>
+<hr>
+
+<div class="row">
+    <div class="col-md-4">
+        <h4>Create Bootcamp</h4>
+        <form action="/create_bootcamp" method="POST" class="card p-3 shadow-sm">
+            <input type="text" name="title" placeholder="Bootcamp Title" class="form-control mb-2" required>
+            <input type="number" name="slots_available" placeholder="Available Slots" class="form-control mb-2" required>
+            <button type="submit" class="btn btn-primary">Create</button>
+        </form>
+    </div>
+
+    <div class="col-md-8">
+        <h4>Manage Bootcamps</h4>
+        <table class="table table-bordered bg-white">
+            <tr><th>Title</th><th>Status</th><th>Slots</th><th>Mentor</th><th>Actions</th></tr>
+            {% for b in bootcamps %}
+            <tr>
+                <td>{{ b.title }}</td>
+                <td>{{ b.status }}</td>
+                <td>{{ b.slots_available }}</td>
+                <td>
+                    <form action="/assign_mentor/{{ b.id }}" method="POST" class="d-flex">
+                        <select name="mentor_id" class="form-select form-select-sm me-1">
+                            <option value="">Unassigned</option>
+                            {% for m in mentors %}
+                                {% if m.is_approved %}
+                                <option value="{{ m.id }}" {% if b.mentor_id == m.id %}selected{% endif %}>{{ m.username }}</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                        <button type="submit" class="btn btn-sm btn-success">Assign</button>
+                    </form>
+                </td>
+                <td><a href="/delete_bootcamp/{{ b.id }}" class="btn btn-sm btn-danger">Delete</a></td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+</div>
+
+<hr>
+<h4>Manage Users</h4>
+<table class="table table-striped bg-white">
+    <tr><th>Username</th><th>Role</th><th>Status</th><th>Action</th></tr>
+    {% for m in mentors %}
+    <tr>
+        <td>{{ m.username }}</td>
+        <td>Mentor</td>
+        <td>{% if m.is_approved %}Approved{% else %}Pending{% endif %} | {% if m.is_blacklisted %}Blacklisted{% else %}Active{% endif %}</td>
+        <td>
+            {% if not m.is_approved %}
+            <a href="/toggle_user_status/{{ m.id }}/approve" class="btn btn-sm btn-success">Approve</a>
+            {% endif %}
+            <a href="/toggle_user_status/{{ m.id }}/blacklist" class="btn btn-sm btn-dark">Toggle Blacklist</a>
+        </td>
+    </tr>
+    {% endfor %}
+    {% for s in students %}
+    <tr>
+        <td>{{ s.username }}</td>
+        <td>Student</td>
+        <td>{% if s.is_blacklisted %}Blacklisted{% else %}Active{% endif %}</td>
+        <td><a href="/toggle_user_status/{{ s.id }}/blacklist" class="btn btn-sm btn-dark">Toggle Blacklist</a></td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}

@@ -21,7 +21,9 @@ def signup():
         
         hashed_password = generate_password_hash(password)
 
-        new_user = User(username = username, password = hashed_password, role = role)
+        is_approved = False if role == 'mentor' else True
+
+        new_user = User(username = username, password = hashed_password, role = role, is_approved = is_approved)
         db.session.add(new_user)
         db.session.commit()
 
@@ -40,9 +42,24 @@ def login():
         user = User.query.filter_by(username = username).first()
 
         if user and check_password_hash(user.password, password):
+            print('okay')
+            if user.is_blacklisted:
+                flash('Your account has been suspendd', 'danger')
+                return redirect(url_for('auth.login'))
+            
+            if user.role == 'mentor' and not user.is_approved:
+                flash("Your mentor account is pending Admin approval...", 'warning')
+            print('okay')
             login_user(user)
-            flash('logged in successfully', 'success')
-            return redirect(url_for('views.dashboard'))
+            print('okay')
+            if user.role == 'admin':
+                print('okay')
+                return redirect(url_for('views.admin_dashboard'))
+            elif user.role == 'mentor':
+                return redirect(url_for('mentor_dashboard'))
+            else:
+                return redirect(url_for('student_dashboard'))
+            
         
         flash('Invalid Credentials. Please try again', 'danger')
     return render_template('login.html')

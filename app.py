@@ -1,9 +1,11 @@
 from flask import Flask, render_template
+from werkzeug.security import generate_password_hash
 from config import Config
 from models import db, User
 from flask_login import LoginManager
 
 from auth import auth
+from views import views
 
 def create_app():
     app = Flask(__name__)
@@ -11,6 +13,7 @@ def create_app():
     db.init_app(app)
 
     app.register_blueprint(auth, url_prefix='/')
+    app.register_blueprint(views,url_prefix = '/')
 
     login_manager = LoginManager()
     login_manager.login_view = 'auth.login'
@@ -26,9 +29,11 @@ def create_app():
         admin_exists = User.query.filter_by(role = 'admin').first()
         if not admin_exists:
             print("No admin exists. Creating default admin account...")
+            password = 'adminpassword'
+            hashed_password = generate_password_hash(password)
             default_admin = User(
                 username = 'admin',
-                password = 'adminpassword',
+                password = hashed_password,
                 role = 'admin'
             )
             db.session.add(default_admin)

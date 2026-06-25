@@ -9,6 +9,8 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(100), unique = True, nullable = False)
     password = db.Column(db.String(14), nullable = False)
     role = db.Column(db.String(50), nullable = False)
+    is_approved = db.Column(db.Boolean, default = True)
+    is_blacklisted = db.Column(db.Boolean, default = False)
 
 
 
@@ -18,7 +20,9 @@ class Bootcamp(db.Model):
     difficulty = db.Column(db.String(50))
     slots_available = db.Column(db.Integer, nullable = False)
     status = db.Column(db.String(100), default = 'Open')
-    mentor_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    mentor_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable = True)
+    mentor  = db.relationship('User', foreign_keys = [mentor_id])
+    bookings = db.relationship('Booking', backref='bootcamp', lazy = True)
 
 
 class Booking(db.Model):
@@ -26,3 +30,4 @@ class Booking(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     bootcamp_id = db.Column(db.Integer, db.ForeignKey('bootcamp.id'))
     status = db.Column(db.String(50), default = 'Booked') 
+    user = db.relationship('User', foreign_keys = [user_id])
