@@ -7,13 +7,13 @@
     <div class="col-md-6">
         <h4>Available Bootcamps</h4>
         <ul class="list-group shadow-sm">
-            {% for w in workshops %}
+            {% for b in bootcamps %}
             <li class="list-group-item d-flex justify-content-between align-items-center">
                 <div>
-                    <strong>{{ w.title }}</strong><br>
-                    <small>Instructor: {{ w.mentor.username if w.mentor else 'TBA' }} | Slots: {{ w.slots_available }}</small>
+                    <strong>{{ b.title }}</strong><br>
+                    <small>Instructor: {{ b.mentor.username if b.mentor else 'TBA' }} | Slots: {{ b.slots_available }}</small>
                 </div>
-                <form action="/book/{{ w.id }}" method="POST">
+                <form action="/book/{{ b.id }}" method="POST">
                     <button type="submit" class="btn btn-sm btn-primary">Book Now</button>
                 </form>
             </li>
@@ -28,7 +28,7 @@
         <ul class="list-group shadow-sm">
             {% for b in bookings %}
             <li class="list-group-item">
-                <strong>{{ b.workshop.title }}</strong>
+                <strong>{{ b.bootcamp.title }}</strong>
                 <span class="badge bg-success float-end">{{ b.status }}</span>
             </li>
             {% else %}

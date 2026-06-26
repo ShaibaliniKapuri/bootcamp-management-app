@@ -80,5 +80,52 @@ def toggle_user_status(user_id, action):
     db.session.commit()
     return redirect(url_for('views.admin_dashboard'))
 
+#Mentor routes
+
+@login_required
+@views.route('/mentor_dashboard')
+def mentor_dashboard():
+    if current_user.role != 'mentor' : return "Unauthorized", 403
+    assigned_bootcamps = Bootcamp.query.filter_by(mentor_id = current_user.id).all()
+    return render_template('mentor_dashboard.html', bootcamps = assigned_bootcamps)
+
+@login_required
+@views.route('/update_status/<int:bootcamp_id>', methods = ['POST'])
+def update_status(bootcamp_id):
+    if current_user.role != 'mentor' : return "Unauthorized", 403
+    bootcamp = Bootcamp.query.get_or_404(bootcamp_id)
+
+    if bootcamp.mentor_id == current_user.id:
+        bootcamp.status = request.form.get('status')
+        db.session.commit()
+        flash('Status updated', 'success')
+    return redirect(url_for('views.mentor_dashboard'))
+
+#Student routes
+
+@login_required
+@views.route('/student_dashboard')
+def student_dashboard():
+    if current_user.role != 'student': return "Unauthorized" , 403
+    available_bootcamps = Bootcamp.query.filter_by(status = 'Open').all()
+    my_bookings = Booking.query.filter_by(user_id = current_user.id).all()
+    return render_template('student_dashboard.html', bootcamps = available_bootcamps, bookings = my_bookings)
+
+@login_required
+@views.route('/book/<int:bootcamp_id>', methods = ['POST'])
+def book_bootcamp(bootcamp_id):
+    if current_user.role != 'student' : return "Unauthorized" , 403
+    bootcamp = Bootcamp.query.get_or_404(bootcamp_id)
+
+    if bootcamp.slots_available > 0 and bootcamp.status == 'Open':
+        booking = Booking(user_id = current_user.id, bootcamp_id = bootcamp.id)
+        bootcamp.slots_available -= 1
+        db.session.add(booking)
+        db.session.commit()
+        flash('Bootcamp successsfully booked!', 'success')
+    else:
+        flash('Bootcamp is full or closed', 'danger')
+    return redirect(url_for('views.student_dashboard'))
+
 
     

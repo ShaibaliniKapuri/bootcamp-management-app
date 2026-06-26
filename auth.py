@@ -56,9 +56,9 @@ def login():
                 print('okay')
                 return redirect(url_for('views.admin_dashboard'))
             elif user.role == 'mentor':
-                return redirect(url_for('mentor_dashboard'))
+                return redirect(url_for('views.mentor_dashboard'))
             else:
-                return redirect(url_for('student_dashboard'))
+                return redirect(url_for('views.student_dashboard'))
             
         
         flash('Invalid Credentials. Please try again', 'danger')
