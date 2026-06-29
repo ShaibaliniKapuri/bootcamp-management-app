@@ -1,6 +1,16 @@
 {% extends "base.html" %}
 {% block content %}
-<h2>Admin Dashboard</h2>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Admin Dashboard</h2>
+    
+    <form class="d-flex" method="GET" action="{{ url_for('views.admin_dashboard') }}">
+        <input class="form-control me-2" type="search" name="search" value="{{ search_query }}" placeholder="Search names or titles..." aria-label="Search">
+        <button class="btn btn-outline-primary" type="submit">Search</button>
+        {% if search_query %}
+            <a href="{{ url_for('views.admin_dashboard') }}" class="btn btn-outline-secondary ms-2">Clear</a>
+        {% endif %}
+    </form>
+</div>
 <hr>
 
 <div class="row">
@@ -68,4 +78,46 @@
     </tr>
     {% endfor %}
 </table>
+<div class="row mb-5">
+    <div class="col-md-12">
+        <div class="card p-3 shadow-sm">
+            <h4 class="mb-3">Bootcamp Enrollment Analytics</h4>
+            <canvas id="enrollmentChart" height="100"></canvas>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    </div>
+
+<script>
+    const ctx = document.getElementById('enrollmentChart').getContext('2d');
+    
+    // We use the 'tojson' filter to safely pass Python lists to JavaScript arrays
+    const labels = {{ chart_labels | tojson }};
+    const data = {{ chart_data | tojson }};
+    
+    new Chart(ctx, {
+        type: 'bar', // Can be changed to 'pie' or 'line'
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Number of Students Booked',
+                data: data,
+                backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { stepSize: 1 } // Ensures we don't get 0.5 of a student
+                }
+            }
+        }
+    });
+</script>
 {% endblock %}

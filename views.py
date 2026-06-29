@@ -1,11 +1,13 @@
-from flask import Blueprint,render_template, request, redirect, url_for, flash
+from flask import Blueprint,render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_required, current_user
 from models import db, User, Booking, Bootcamp
 
 
 views = Blueprint('views', __name__)
 
-
+@views.route('/')
+def home():
+    return render_template('index.html')
 #Admin Functionalities
 
 @login_required
@@ -13,12 +15,25 @@ views = Blueprint('views', __name__)
 def admin_dashboard():
     if current_user.role != 'admin':
         return "unauthorized", 403
-    
-    bootcamps = Bootcamp.query.all()
-    mentors = User.query.filter_by(role = 'mentor').all()
-    students = User.query.filter_by(role = 'student').all()
+    #search
+    search_query = request.args.get('search', '')
 
-    return render_template('admin_dashboard.html', bootcamps = bootcamps, mentors = mentors, students = students)
+    if search_query:
+        search_term = f"%{search_query}%"
+        bootcamps = Bootcamp.query.filter(Bootcamp.title.ilike(search_term)).all()
+        mentors = User.query.filter(User.role == 'mentor', User.username.ilike(search_term)).all()
+        students = User.query.filter(User.role == 'student', User.username.ilike(search_term)).all()
+    else:
+        bootcamps = Bootcamp.query.all()
+        mentors = User.query.filter_by(role = 'mentor').all()
+        students = User.query.filter_by(role = 'student').all()
+
+    #data for chart(Bookings per bootcamp)
+    all_bootcamps_for_chart = Bootcamp.query.all()
+    chart_labels = [b.title for b in all_bootcamps_for_chart]
+    chart_data = [len(b.bookings) for b in all_bootcamps_for_chart]
+
+    return render_template('admin_dashboard.html', bootcamps = bootcamps, mentors = mentors, students = students, search_query = search_query, chart_labels = chart_labels, chart_data = chart_data)
 
 
 @login_required
@@ -128,4 +143,18 @@ def book_bootcamp(bootcamp_id):
     return redirect(url_for('views.student_dashboard'))
 
 
-    
+#API Endpoints 
+
+@views.route('/api/bootcamps', methods = ['GET'])
+def get_bootcamp():
+    bootcamps = Bootcamp.query.all()
+    data = []
+    for b in bootcamps:
+        data.append({
+            'id' : b.id,
+            'title' : b.title,
+            'slots_available' : b.slots_available,
+            'status' : b.status,
+            'mentor_id' : b.mentor_id
+        })
+    return jsonify({'bootcamps' : data}), 200
