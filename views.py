@@ -158,3 +158,24 @@ def get_bootcamp():
             'mentor_id' : b.mentor_id
         })
     return jsonify({'bootcamps' : data}), 200
+
+
+@views.route('/api/bootcamps', methods = ['POST'])
+def create_api_bootcamp():
+    data = request.get_json()
+
+    if not data or not data.get('title') or not data.get('slots_available'):
+        return jsonify({'error' : 'Missing required fields'}), 400
+    
+    new_bootcamp = Bootcamp(title = data['title'],
+                            slots_available = data['slots_available'],
+                            status = data.get('status', 'Open')
+    )
+
+    db.session.add(new_bootcamp)
+    db.session.commit()
+
+    return jsonify({
+        'message' : 'Bootcamp successfully created!',
+        'bootcamp_id' : new_bootcamp.id
+    }), 201

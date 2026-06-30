@@ -1,0 +1,69 @@
+openapi: 3.0.0
+info:
+  title: BootcampHub API
+  description: REST API for managing bootcamp bootcamps.
+  version: 1.0.0
+servers:
+  - url: http://127.0.0.1:5000/api
+    description: Local development server
+
+paths:
+  /bootcamps:
+    get:
+      summary: Retrieve a list of all bootcamps
+      responses:
+        '200':
+          description: A JSON array of bootcamps
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  bootcamps:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Bootcamp'
+                      
+    post:
+      summary: Create a new bootcamp
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+                - slots_available
+              properties:
+                title:
+                  type: string
+                  example: "Generative AI Fundamentals"
+                slots_available:
+                  type: integer
+                  example: 25
+                status:
+                  type: string
+                  example: "Open"
+      responses:
+        '201':
+          description: Bootcamp created successfully
+        '400':
+          description: Bad request (missing required fields)
+
+components:
+  schemas:
+    Workshop:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        slots_available:
+          type: integer
+        status:
+          type: string
+        mentor_id:
+          type: integer
+          nullable: true
